@@ -1,10 +1,8 @@
-use spirv_std::glam::{self, vec3, UVec2, UVec3};
-#[cfg(not(target_arch = "spirv"))]
-use spirv_std::macros::spirv;
-// use spirv_std::Image;
+use spirv_std::glam::{vec2, vec3, UVec2, UVec3, Vec3};
 use spirv_std::image;
 
-use glam::{vec2, Vec2, Vec3};
+#[cfg(not(target_arch = "spirv"))]
+use spirv_std::macros::spirv;
 
 pub struct RayPayload {
     color: Vec3,
@@ -13,8 +11,8 @@ pub struct RayPayload {
 #[spirv(ray_generation)]
 pub fn main(
     #[spirv(launch_id)] pixel: UVec2,
-    #[spirv(descriptor_set = 0, binding = 0)] tlas: &spirv_std::ray_tracing::AccelerationStructure,
     #[spirv(ray_payload)] payload: &mut RayPayload,
+    #[spirv(descriptor_set = 0, binding = 0)] tlas: &spirv_std::ray_tracing::AccelerationStructure,
     // #[spirv(descriptor_set = 0, binding = 1)] storage_image: &Image!(2D, type=f32, sampled),
     #[spirv(descriptor_set = 0, binding = 1)] img: &mut image::Image<
         f32,
@@ -26,12 +24,12 @@ pub fn main(
         { image::ImageFormat::Rgba32f },
         { None },
     >,
-    #[spirv(uniform, descriptor_set = 0, binding = 2)] camera_pos: &mut Vec2,
+    // #[spirv(uniform, descriptor_set = 0, binding = 2)] camera_pos: &mut Vec2,
 ) {
     unsafe {
         let tmin = 0.001;
         let tmax = 10000.0;
-        let origin = vec3(1.0, 0.0, 0.0);
+        let origin = vec3(-0.001, 1.0, 6.0);
         let resolution = img.query_size::<UVec2>();
         let fov_vertical_slope = 1.0 / 5.0;
         // normalize width to [-1, 1] and height to [-aspect_ratio, aspect_ratio]
