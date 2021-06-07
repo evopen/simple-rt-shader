@@ -1,4 +1,11 @@
-use spirv_std::glam::{vec2, vec3, UVec2, UVec3, Vec3};
+#![cfg_attr(
+    target_arch = "spirv",
+    no_std,
+    feature(register_attr),
+    register_attr(spirv)
+)]
+
+use spirv_std::glam::{vec2, vec3, UVec2, UVec3, Vec3, Vec3Swizzles};
 use spirv_std::image;
 
 #[cfg(not(target_arch = "spirv"))]
@@ -10,7 +17,7 @@ pub struct RayPayload {
 
 #[spirv(ray_generation)]
 pub fn main(
-    #[spirv(launch_id)] pixel: UVec2,
+    #[spirv(launch_id)] pixel: UVec3,
     #[spirv(ray_payload)] payload: &mut RayPayload,
     #[spirv(descriptor_set = 0, binding = 0)] tlas: &spirv_std::ray_tracing::AccelerationStructure,
     // #[spirv(descriptor_set = 0, binding = 1)] storage_image: &Image!(2D, type=f32, sampled),
@@ -55,7 +62,7 @@ pub fn main(
             tmax,
             payload,
         );
-        img.write(pixel, payload.color);
+        img.write(pixel.xy(), payload.color);
     }
 }
 
