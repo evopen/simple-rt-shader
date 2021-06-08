@@ -7,30 +7,27 @@
 
 use spirv_std::glam::{vec2, vec3, UVec2, UVec3, Vec3, Vec3Swizzles};
 use spirv_std::image;
+use spirv_std::Image;
 
 #[cfg(not(target_arch = "spirv"))]
 use spirv_std::macros::spirv;
 
-pub struct RayPayload {
-    color: Vec3,
-}
-
 #[spirv(ray_generation)]
 pub fn main(
     #[spirv(launch_id)] pixel: UVec3,
-    #[spirv(ray_payload)] payload: &mut RayPayload,
+    #[spirv(ray_payload)] payload: &mut Vec3,
     #[spirv(descriptor_set = 0, binding = 0)] tlas: &spirv_std::ray_tracing::AccelerationStructure,
-    // #[spirv(descriptor_set = 0, binding = 1)] storage_image: &Image!(2D, type=f32, sampled),
-    #[spirv(descriptor_set = 0, binding = 1)] img: &mut image::Image<
-        f32,
-        { image::Dimensionality::TwoD },
-        { image::ImageDepth::Unknown },
-        { image::Arrayed::False },
-        { image::Multisampled::False },
-        { image::Sampled::No },
-        { image::ImageFormat::Rgba32f },
-        { None },
-    >,
+    #[spirv(descriptor_set = 0, binding = 1)] img: &Image!(2D, type=f32, sampled=false),
+    // #[spirv(descriptor_set = 0, binding = 1)] img: &mut image::Image<
+    //     f32,
+    //     { image::Dimensionality::TwoD },
+    //     { image::ImageDepth::Unknown },
+    //     { image::Arrayed::False },
+    //     { image::Multisampled::False },
+    //     { image::Sampled::No },
+    //     { image::ImageFormat::Rgba32f },
+    //     { None },
+    // >,
     // #[spirv(uniform, descriptor_set = 0, binding = 2)] camera_pos: &mut Vec2,
 ) {
     unsafe {
@@ -62,16 +59,16 @@ pub fn main(
             tmax,
             payload,
         );
-        img.write(pixel.xy(), payload.color);
+        img.write(pixel.xy(), *payload);
     }
 }
 
 #[spirv(closest_hit)]
-pub fn closest_hit(#[spirv(ray_payload)] payload: &mut RayPayload) {
-    payload.color = vec3(1.0, 1.0, 1.0);
+pub fn closest_hit(#[spirv(ray_payload)] payload: &mut Vec3) {
+    *payload = vec3(1.0, 1.0, 1.0);
 }
 
 #[spirv(miss)]
-pub fn miss(#[spirv(ray_payload)] payload: &mut RayPayload) {
-    payload.color = vec3(0.0, 0.0, 0.0);
+pub fn miss(#[spirv(ray_payload)] payload: &mut Vec3) {
+    *payload = vec3(0.0, 0.0, 0.0);
 }
