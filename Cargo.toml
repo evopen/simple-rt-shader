@@ -4,5 +4,3 @@ members = [
     "simple-rt-shader"
 ]
 
-[patch.'https://github.com/EmbarkStudios/rust-gpu']
-spirv-std = { path = '../rust-gpu/crates/spirv-std' }

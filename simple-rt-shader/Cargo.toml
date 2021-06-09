@@ -8,6 +8,6 @@ edition = "2018"
 
 [build-dependencies.spirv-builder]
 git = "https://github.com/EmbarkStudios/rust-gpu"
-rev = "31bfc338e01c340f9ba3f18b294098a8e529e20c"
+rev = "b072b5ebdc23077809763d58ec9bf10a186bb339"
 default-features = false
-features = ["use-installed-tools"]
+features = ["use-installed-tools", "watch"]
