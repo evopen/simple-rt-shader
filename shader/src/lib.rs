@@ -5,7 +5,7 @@
     register_attr(spirv)
 )]
 
-use spirv_std::glam::{vec2, vec3, UVec2, UVec3, Vec3, Vec3Swizzles};
+use spirv_std::glam::{vec2, vec3, vec4, UVec2, UVec3, Vec3, Vec3Swizzles};
 use spirv_std::image;
 use spirv_std::Image;
 
@@ -17,23 +17,23 @@ pub fn main(
     #[spirv(launch_id)] pixel: UVec3,
     #[spirv(ray_payload)] payload: &mut Vec3,
     #[spirv(descriptor_set = 0, binding = 0)] tlas: &spirv_std::ray_tracing::AccelerationStructure,
-    #[spirv(descriptor_set = 0, binding = 1)] img: &Image!(2D, type=f32, sampled=false),
-    // #[spirv(descriptor_set = 0, binding = 1)] img: &mut image::Image<
-    //     f32,
-    //     { image::Dimensionality::TwoD },
-    //     { image::ImageDepth::Unknown },
-    //     { image::Arrayed::False },
-    //     { image::Multisampled::False },
-    //     { image::Sampled::No },
-    //     { image::ImageFormat::Rgba32f },
-    //     { None },
-    // >,
+    // #[spirv(descriptor_set = 0, binding = 1)] img: &Image!(2D, type=f32, sampled=false),
+    #[spirv(descriptor_set = 0, binding = 1)] img: &mut image::Image<
+        f32,
+        { image::Dimensionality::TwoD },
+        { image::ImageDepth::False },
+        { image::Arrayed::False },
+        { image::Multisampled::False },
+        { image::Sampled::No },
+        { image::ImageFormat::Rgba32f },
+        { None },
+    >,
     // #[spirv(uniform, descriptor_set = 0, binding = 2)] camera_pos: &mut Vec2,
 ) {
     unsafe {
         let tmin = 0.001;
         let tmax = 10000.0;
-        let origin = vec3(-0.001, 1.0, 6.0);
+        let origin = vec3(-0.001, 0.0, 20.0);
         let resolution = img.query_size::<UVec2>();
         let fov_vertical_slope = 1.0 / 5.0;
         // normalize width to [-1, 1] and height to [-aspect_ratio, aspect_ratio]
@@ -48,7 +48,7 @@ pub fn main(
         )
         .normalize();
         tlas.trace_ray(
-            spirv_std::ray_tracing::RayFlags::NONE,
+            spirv_std::ray_tracing::RayFlags::OPAQUE,
             0xFF,
             0,
             0,
@@ -59,16 +59,17 @@ pub fn main(
             tmax,
             payload,
         );
-        img.write(pixel.xy(), *payload);
+
+        img.write(pixel.xy(), vec4(payload.x, payload.y, payload.z, 1.0));
     }
 }
 
 #[spirv(closest_hit)]
-pub fn closest_hit(#[spirv(ray_payload)] payload: &mut Vec3) {
-    *payload = vec3(1.0, 1.0, 1.0);
+pub fn closest_hit(#[spirv(incoming_ray_payload)] payload: &mut Vec3) {
+    *payload = vec3(0.0, 1.0, 1.0);
 }
 
 #[spirv(miss)]
-pub fn miss(#[spirv(ray_payload)] payload: &mut Vec3) {
-    *payload = vec3(0.0, 0.0, 0.0);
+pub fn miss(#[spirv(incoming_ray_payload)] payload: &mut Vec3) {
+    *payload = vec3(1.0, 0.1, 0.23);
 }
